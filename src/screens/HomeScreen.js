@@ -7,16 +7,14 @@ import {
   StatusBar, 
   SafeAreaView 
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { router } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import Button from '../components/Button';
 
 const HomeScreen = () => {
-  const navigation = useNavigation();
-
   const handleScanPress = () => {
-    navigation.navigate('Scanner');
+    router.push('/scanner');
   };
 
   return (
@@ -29,7 +27,7 @@ const HomeScreen = () => {
       
       <View style={styles.content}>
         <Image
-          source={require('../../assets/tutorial3.png')}
+          source={require('../../assets/images/tutorial3.png')}
           style={styles.image}
         />
         

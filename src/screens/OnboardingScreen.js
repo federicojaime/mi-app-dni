@@ -1,26 +1,18 @@
 import React from 'react';
 import { StyleSheet, Image, View, Text } from 'react-native';
 import Onboarding from 'react-native-onboarding-swiper';
-import { useNavigation } from '@react-navigation/native';
 
-const OnboardingScreen = () => {
-  const navigation = useNavigation();
-
-  // Función que se ejecuta cuando se completa el onboarding
-  const handleDone = () => {
-    navigation.replace('Home');
-  };
-
+const OnboardingScreen = ({ onDone }) => {
   return (
     <Onboarding
-      onDone={handleDone}
-      onSkip={handleDone}
+      onDone={onDone}
+      onSkip={onDone}
       pages={[
         {
           backgroundColor: '#fff',
           image: (
             <Image
-              source={require('../../assets/tutorial1.png')}
+              source={require('../../assets/images/tutorial1.png')}
               style={styles.image}
             />
           ),
@@ -31,7 +23,7 @@ const OnboardingScreen = () => {
           backgroundColor: '#f9fafd',
           image: (
             <Image
-              source={require('../../assets/tutorial2.png')}
+              source={require('../../assets/images/tutorial2.png')}
               style={styles.image}
             />
           ),
@@ -42,7 +34,7 @@ const OnboardingScreen = () => {
           backgroundColor: '#e9f0ff',
           image: (
             <Image
-              source={require('../../assets/tutorial3.png')}
+              source={require('../../assets/images/tutorial3.png')}
               style={styles.image}
             />
           ),
