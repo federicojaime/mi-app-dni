@@ -5,7 +5,8 @@ import {
   Text, 
   TouchableOpacity, 
   Dimensions, 
-  Platform 
+  Platform,
+  Alert
 } from 'react-native';
 import { Camera } from 'expo-camera';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -24,7 +25,6 @@ const Scanner = ({ onScan, onClose }) => {
       try {
         const photo = await cameraRef.current.takePictureAsync({
           quality: 0.8,
-          skipProcessing: true,
         });
         
         // En una aplicación real, aquí procesarías la imagen para extraer
@@ -32,6 +32,7 @@ const Scanner = ({ onScan, onClose }) => {
         onScan({ uri: photo.uri });
       } catch (error) {
         console.error('Error al tomar la foto:', error);
+        Alert.alert('Error', 'No se pudo tomar la foto');
       }
     }
   };
@@ -51,7 +52,6 @@ const Scanner = ({ onScan, onClose }) => {
             ? Camera.Constants.FlashMode.torch
             : Camera.Constants.FlashMode.off
         }
-        ratio="16:9"
       >
         <View style={styles.overlay}>
           {/* Área superior oscurecida */}

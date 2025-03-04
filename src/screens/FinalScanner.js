@@ -1,174 +1,156 @@
-import React from 'react';
-import { StyleSheet, Text, View, Button, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, Alert, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { Camera } from 'expo-camera';
+import Scanner from '../components/Scanner';
 import { MaterialIcons } from '@expo/vector-icons';
 
-export default function FinalScanner({ onClose }) {
-  
-  const handleSimulatedScan = () => {
-    // Datos de simulación del DNI
-    const simulatedData = {
-      tipo: 'DNI',
-      nombre: 'Juan Pérez Gómez',
-      numero: '12345678A',
-      fechaNacimiento: '01/01/1990',
-      nacionalidad: 'Española',
-      fechaExpedicion: '15/06/2022',
-      fechaCaducidad: '15/06/2032'
-    };
-    
-    // Simulamos procesamiento
-    setTimeout(() => {
-      // Mostrar alerta y volver
-      alert('Datos escaneados correctamente');
-      onClose();
-    }, 1000);
+export default function FinalScanner({ navigation }) {
+  const [hasPermission, setHasPermission] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Solicitar permisos de cámara directamente
+  useEffect(() => {
+    (async () => {
+      // Solicitar permisos directamente sin usar funciones personalizadas
+      const { status } = await Camera.requestCameraPermissionsAsync();
+      setHasPermission(status === 'granted');
+      
+      // Si después de 3 segundos seguimos sin permisos, mostrar mensaje
+      if (status !== 'granted') {
+        setTimeout(() => {
+          Alert.alert(
+            'Se necesitan permisos',
+            'Esta aplicación necesita acceso a la cámara para escanear DNIs',
+            [
+              { text: 'Cancelar', style: 'cancel', onPress: () => navigation.goBack() },
+              { text: 'Solicitar de nuevo', onPress: requestPermissionAgain }
+            ]
+          );
+        }, 1000);
+      }
+    })();
+  }, []);
+
+  const requestPermissionAgain = async () => {
+    const { status } = await Camera.requestCameraPermissionsAsync();
+    setHasPermission(status === 'granted');
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+  const handleClose = () => {
+    if (navigation && navigation.goBack) {
+      navigation.goBack();
+    } else if (navigation && navigation.navigate) {
+      navigation.navigate('Home');
+    }
+  };
+
+  const handleScan = async (data) => {
+    setIsLoading(true);
+    
+    // Simular procesamiento del DNI (aquí iría el OCR real)
+    setTimeout(() => {
+      setIsLoading(false);
+      
+      // Mostrar datos escaneados en un Alert
+      Alert.alert(
+        'DNI Escaneado',
+        'Se ha escaneado el DNI correctamente.\n\nNombre: Juan Pérez García\nNúmero: 12345678A',
+        [{ text: 'Aceptar', onPress: handleClose }]
+      );
+    }, 1500);
+  };
+
+  // Mostrar pantalla de carga mientras verifica permisos (con botón para volver)
+  if (hasPermission === null) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#3498db" />
+        <Text style={styles.text}>Verificando permisos de cámara...</Text>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={handleClose}
+        >
           <MaterialIcons name="arrow-back" size={24} color="white" />
+          <Text style={styles.backButtonText}>Volver</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Escanear DNI</Text>
       </View>
-      
-      <View style={styles.cameraPlaceholder}>
-        <MaterialIcons name="camera-alt" size={64} color="#555" />
-        <Text style={styles.placeholderText}>
-          Versión de demostración
-        </Text>
+    );
+  }
+
+  // Mostrar mensaje si no hay permisos y botón para solicitarlos nuevamente
+  if (hasPermission === false) {
+    return (
+      <View style={styles.center}>
+        <MaterialIcons name="no-photography" size={60} color="#ff6b6b" />
+        <Text style={styles.text}>No se pudo acceder a la cámara</Text>
+        <TouchableOpacity 
+          style={styles.permissionButton} 
+          onPress={requestPermissionAgain}
+        >
+          <Text style={styles.permissionButtonText}>Solicitar permiso</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.backButton, {marginTop: 20}]} 
+          onPress={handleClose}
+        >
+          <MaterialIcons name="arrow-back" size={24} color="white" />
+          <Text style={styles.backButtonText}>Volver</Text>
+        </TouchableOpacity>
       </View>
-      
-      <View style={styles.guideFrame}>
-        <View style={styles.cornerTL}></View>
-        <View style={styles.cornerTR}></View>
-        <View style={styles.cornerBL}></View>
-        <View style={styles.cornerBR}></View>
+    );
+  }
+
+  // Mostrar indicador de carga mientras procesa el escaneo
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#3498db" />
+        <Text style={styles.text}>Procesando DNI...</Text>
       </View>
-      
-      <View style={styles.instructions}>
-        <Text style={styles.instructionText}>
-          Coloca el DNI dentro del marco y presiona el botón para escanear
-        </Text>
-      </View>
-      
-      <TouchableOpacity 
-        style={styles.scanButton} 
-        onPress={handleSimulatedScan}
-      >
-        <Text style={styles.scanButtonText}>Escanear Ahora</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  }
+
+  // Mostrar el scanner
+  return <Scanner onScan={handleScan} onClose={handleClose} />;
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-  },
-  closeButton: {
-    marginRight: 15,
-  },
-  headerTitle: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  cameraPlaceholder: {
+  center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#222',
-  },
-  placeholderText: {
-    color: '#ccc',
-    fontSize: 16,
-    marginTop: 10,
-  },
-  guideFrame: {
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    width: 280,
-    height: 180,
-    marginLeft: -140,
-    marginTop: -90,
-    backgroundColor: 'transparent',
-  },
-  cornerTL: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: 40,
-    height: 40,
-    borderTopWidth: 3,
-    borderLeftWidth: 3,
-    borderColor: 'white',
-  },
-  cornerTR: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 40,
-    height: 40,
-    borderTopWidth: 3,
-    borderRightWidth: 3,
-    borderColor: 'white',
-  },
-  cornerBL: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    width: 40,
-    height: 40,
-    borderBottomWidth: 3,
-    borderLeftWidth: 3,
-    borderColor: 'white',
-  },
-  cornerBR: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 40,
-    height: 40,
-    borderBottomWidth: 3,
-    borderRightWidth: 3,
-    borderColor: 'white',
-  },
-  instructions: {
-    position: 'absolute',
-    bottom: 100,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
+    backgroundColor: '#000',
     padding: 20,
   },
-  instructionText: {
+  text: {
     color: 'white',
-    textAlign: 'center',
+    marginTop: 20,
     fontSize: 16,
+    textAlign: 'center',
   },
-  scanButton: {
-    position: 'absolute',
-    bottom: 30,
-    left: 50,
-    right: 50,
+  permissionButton: {
     backgroundColor: '#3498db',
-    paddingVertical: 15,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 25,
-    alignItems: 'center',
+    marginTop: 20,
   },
-  scanButtonText: {
+  permissionButtonText: {
     color: 'white',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    paddingVertical: 8,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+    marginTop: 30,
+  },
+  backButtonText: {
+    color: 'white',
+    marginLeft: 5,
   }
 });
